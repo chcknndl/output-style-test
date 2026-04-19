@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>카운터 앱</title>
+  <!-- Tailwind CSS를 인터넷에서 불러옵니다 (설치 없이 바로 사용 가능) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+  <!-- 카드 컨테이너: 흰 배경에 둥근 모서리, 그림자 효과 -->
+  <div class="bg-white rounded-2xl shadow-lg p-10 flex flex-col items-center gap-8 w-80">
+
+    <!-- 제목 -->
+    <h1 class="text-2xl font-bold text-gray-700">카운터</h1>
+
+    <!-- 현재 카운트를 보여주는 숫자 -->
+    <!-- id="count"로 JavaScript에서 이 요소를 찾아 숫자를 바꿀 수 있습니다 -->
+    <div id="count" class="text-7xl font-extrabold text-blue-600">0</div>
+
+    <!-- 버튼 세 개를 가로로 나란히 배치 -->
+    <div class="flex gap-4">
+
+      <!-- 감소 버튼: 클릭하면 decrease() 함수가 실행됩니다 -->
+      <button
+        onclick="decrease()"
+        class="bg-blue-200 hover:bg-blue-300 text-blue-800 font-bold text-xl w-14 h-14 rounded-full transition"
+      >−</button>
+
+      <!-- 리셋 버튼: 클릭하면 reset() 함수가 실행됩니다 -->
+      <button
+        onclick="reset()"
+        class="bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm w-14 h-14 rounded-full transition"
+      >리셋</button>
+
+      <!-- 증가 버튼: 클릭하면 increase() 함수가 실행됩니다 -->
+      <button
+        onclick="increase()"
+        class="bg-blue-200 hover:bg-blue-300 text-blue-800 font-bold text-xl w-14 h-14 rounded-full transition"
+      >+</button>
+
+    </div>
+  </div>
+
+  <script>
+    // 현재 카운트 값을 저장하는 변수 (처음엔 0)
+    let count = 0;
+
+    // 화면의 숫자를 현재 count 값으로 업데이트하는 함수
+    function updateDisplay() {
+      // id가 "count"인 요소를 찾아 텍스트를 바꿉니다
+      document.getElementById('count').textContent = count;
+    }
+
+    // 증가 버튼을 눌렀을 때 실행: count에 1을 더하고 화면 갱신
+    function increase() {
+      count += 1;
+      updateDisplay();
+    }
+
+    // 감소 버튼을 눌렀을 때 실행: count에서 1을 빼고 화면 갱신
+    function decrease() {
+      count -= 1;
+      updateDisplay();
+    }
+
+    // 리셋 버튼을 눌렀을 때 실행: count를 0으로 초기화하고 화면 갱신
+    function reset() {
+      count = 0;
+      updateDisplay();
+    }
+  </script>
+
+</body>
+</html>

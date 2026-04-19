@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>할 일 목록</title>
+  <!-- Tailwind CSS를 인터넷에서 불러옵니다 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+
+  <!-- 메인 카드 컨테이너 -->
+  <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+
+    <!-- 제목 -->
+    <h1 class="text-3xl font-bold text-indigo-700 mb-6 text-center">📝 할 일 목록</h1>
+
+    <!-- 입력 영역: 텍스트 필드 + 추가 버튼을 가로로 배치 -->
+    <div class="flex gap-2 mb-6">
+
+      <!-- 할 일 입력 필드 -->
+      <!-- id="todoInput"으로 JavaScript에서 입력값을 읽어옵니다 -->
+      <!-- onkeydown: 엔터 키를 눌러도 추가되도록 처리 -->
+      <input
+        id="todoInput"
+        type="text"
+        placeholder="할 일을 입력하세요..."
+        onkeydown="handleEnter(event)"
+        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      />
+
+      <!-- 추가 버튼: 클릭하면 addTodo() 함수 실행 -->
+      <button
+        onclick="addTodo()"
+        class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold px-5 py-2 rounded-lg transition"
+      >추가</button>
+
+    </div>
+
+    <!-- 할 일 목록이 들어갈 영역 -->
+    <!-- id="todoList"로 JavaScript가 여기에 항목을 추가합니다 -->
+    <ul id="todoList" class="flex flex-col gap-3">
+      <!-- 항목이 없을 때 보여줄 안내 문구 -->
+      <li id="emptyMessage" class="text-center text-gray-400 py-6">아직 할 일이 없어요. 추가해보세요!</li>
+    </ul>
+
+  </div>
+
+  <script>
+    // 할 일 항목들을 저장하는 배열 (처음엔 비어 있음)
+    let todos = [];
+
+    // 엔터 키를 눌렀을 때 addTodo()를 실행하는 함수
+    // event.key: 어떤 키를 눌렀는지 알려주는 값
+    function handleEnter(event) {
+      if (event.key === 'Enter') {
+        addTodo();
+      }
+    }
+
+    // 할 일을 추가하는 함수
+    function addTodo() {
+      // 입력 필드에서 텍스트를 가져오고 앞뒤 공백을 제거합니다
+      const input = document.getElementById('todoInput');
+      const text = input.value.trim();
+
+      // 아무것도 입력하지 않으면 추가하지 않습니다
+      if (text === '') return;
+
+      // 새 할 일 객체를 만들어 배열에 추가합니다
+      // id: 각 항목을 구분하는 고유 번호 (Date.now()는 현재 시간을 숫자로 반환)
+      todos.push({ id: Date.now(), text: text, done: false });
+
+      // 입력 필드를 비웁니다
+      input.value = '';
+
+      // 화면을 다시 그립니다
+      render();
+    }
+
+    // 체크박스를 클릭하면 완료 상태를 토글(on/off)하는 함수
+    function toggleTodo(id) {
+      // 배열에서 id가 일치하는 항목을 찾아 done 값을 반대로 바꿉니다
+      todos = todos.map(todo =>
+        todo.id === id ? { ...todo, done: !todo.done } : todo
+      );
+      render();
+    }
+
+    // 할 일을 삭제하는 함수
+    function deleteTodo(id) {
+      // 배열에서 id가 일치하지 않는 항목만 남깁니다 (일치하는 건 제거)
+      todos = todos.filter(todo => todo.id !== id);
+      render();
+    }
+
+    // 화면을 다시 그리는 함수 (todos 배열을 보고 HTML을 만들어냅니다)
+    function render() {
+      const list = document.getElementById('todoList');
+      const emptyMessage = document.getElementById('emptyMessage');
+
+      // 할 일이 없으면 안내 문구를 보여줍니다
+      emptyMessage.style.display = todos.length === 0 ? 'block' : 'none';
+
+      // 기존 항목들을 지우고 다시 그립니다 (emptyMessage는 유지)
+      list.querySelectorAll('li.todo-item').forEach(el => el.remove());
+
+      // todos 배열을 순서대로 화면에 추가합니다
+      todos.forEach(todo => {
+        const li = document.createElement('li');
+        li.className = 'todo-item flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 shadow-sm';
+
+        // 완료 상태에 따라 줄긋기(line-through) 스타일을 적용합니다
+        const textClass = todo.done
+          ? 'flex-1 text-gray-400 line-through'
+          : 'flex-1 text-gray-700';
+
+        li.innerHTML = `
+          <input
+            type="checkbox"
+            ${todo.done ? 'checked' : ''}
+            onchange="toggleTodo(${todo.id})"
+            class="w-5 h-5 accent-indigo-500 cursor-pointer"
+          />
+          <span class="${textClass}">${escapeHtml(todo.text)}</span>
+          <button
+            onclick="deleteTodo(${todo.id})"
+            class="text-red-400 hover:text-red-600 font-bold text-lg transition"
+          >✕</button>
+        `;
+
+        list.appendChild(li);
+      });
+    }
+
+    // XSS 방지: 사용자 입력의 특수문자를 안전하게 변환하는 함수
+    // 예: <script> 같은 위험한 코드가 실행되지 않도록 막습니다
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(text));
+      return div.innerHTML;
+    }
+  </script>
+
+</body>
+</html>

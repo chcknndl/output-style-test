@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스톱워치</title>
+  <!-- Tailwind CSS를 인터넷에서 불러옵니다 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center">
+
+  <!-- 메인 카드 -->
+  <div class="bg-gray-800 rounded-3xl shadow-2xl p-12 flex flex-col items-center gap-10 w-96">
+
+    <!-- 제목 -->
+    <h1 class="text-white text-2xl font-semibold tracking-widest uppercase">Stopwatch</h1>
+
+    <!-- 시간 표시 영역 (00:00:00.00 형식) -->
+    <!-- id로 각 숫자를 따로 관리해서 JavaScript가 쉽게 업데이트할 수 있게 합니다 -->
+    <div class="flex items-center gap-1 font-mono font-bold">
+      <span id="hours" class="text-white text-6xl">00</span>
+      <span class="text-gray-500 text-6xl">:</span>
+      <span id="minutes" class="text-white text-6xl">00</span>
+      <span class="text-gray-500 text-6xl">:</span>
+      <span id="seconds" class="text-white text-6xl">00</span>
+      <!-- 밀리초는 작게 표시해서 시/분/초와 구분합니다 -->
+      <span class="text-gray-400 text-4xl self-end mb-2">.</span>
+      <span id="millis" class="text-gray-300 text-4xl self-end mb-2">00</span>
+    </div>
+
+    <!-- 버튼 영역 -->
+    <div class="flex gap-6">
+
+      <!-- 시작/일시정지 버튼 -->
+      <!-- id="startBtn"으로 버튼 텍스트를 JavaScript에서 바꿀 수 있습니다 -->
+      <button
+        id="startBtn"
+        onclick="toggleTimer()"
+        class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg px-8 py-4 rounded-2xl transition-all shadow-lg"
+      >시작</button>
+
+      <!-- 리셋 버튼 -->
+      <button
+        onclick="resetTimer()"
+        class="bg-gray-600 hover:bg-gray-500 text-white font-bold text-lg px-8 py-4 rounded-2xl transition-all shadow-lg"
+      >리셋</button>
+
+    </div>
+  </div>
+
+  <script>
+    // ── 상태 변수들 ──────────────────────────────────────────
+    // 경과 시간을 밀리초(ms) 단위로 저장하는 변수
+    // 1초 = 1000ms, 1분 = 60000ms, 1시간 = 3600000ms
+    let elapsedMs = 0;
+
+    // 타이머가 실행 중인지 여부 (true: 실행 중, false: 멈춤)
+    let isRunning = false;
+
+    // setInterval이 반환하는 ID (타이머를 멈출 때 이 ID가 필요합니다)
+    let intervalId = null;
+
+    // 타이머가 시작된 시점의 시각 (Date.now()로 기록)
+    // 이 값을 기준으로 현재까지 얼마나 지났는지 계산합니다
+    let startTime = null;
+
+    // ── 시작/일시정지 버튼 클릭 시 실행되는 함수 ────────────
+    function toggleTimer() {
+      if (isRunning) {
+        // 현재 실행 중이면 → 일시정지
+        pauseTimer();
+      } else {
+        // 현재 멈춰 있으면 → 시작
+        startTimer();
+      }
+    }
+
+    // 타이머를 시작하는 함수
+    function startTimer() {
+      isRunning = true;
+
+      // 현재 시각을 기록합니다 (이미 경과된 시간을 빼서 기준점을 맞춥니다)
+      // 예: 이미 5초가 지났다면 startTime을 5초 전으로 설정
+      startTime = Date.now() - elapsedMs;
+
+      // setInterval: 10밀리초마다 tick() 함수를 반복 실행합니다
+      // 반환값(intervalId)을 저장해야 나중에 멈출 수 있습니다
+      intervalId = setInterval(tick, 10);
+
+      // 버튼 텍스트와 색상을 "일시정지"로 바꿉니다
+      const btn = document.getElementById('startBtn');
+      btn.textContent = '일시정지';
+      btn.className = 'bg-amber-500 hover:bg-amber-400 text-white font-bold text-lg px-8 py-4 rounded-2xl transition-all shadow-lg';
+    }
+
+    // 타이머를 일시정지하는 함수
+    function pauseTimer() {
+      isRunning = false;
+
+      // clearInterval: setInterval을 멈춥니다 (intervalId가 필요한 이유)
+      clearInterval(intervalId);
+      intervalId = null;
+
+      // 버튼을 "계속" 상태로 바꿉니다
+      const btn = document.getElementById('startBtn');
+      btn.textContent = '계속';
+      btn.className = 'bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg px-8 py-4 rounded-2xl transition-all shadow-lg';
+    }
+
+    // 타이머를 초기화하는 함수
+    function resetTimer() {
+      // 실행 중이라면 먼저 멈춥니다
+      if (isRunning) {
+        clearInterval(intervalId);
+        intervalId = null;
+        isRunning = false;
+      }
+
+      // 모든 상태 변수를 초기값으로 되돌립니다
+      elapsedMs = 0;
+      startTime = null;
+
+      // 화면의 숫자를 00:00:00으로 초기화합니다
+      updateDisplay(0, 0, 0);
+
+      // 버튼을 "시작" 상태로 되돌립니다
+      const btn = document.getElementById('startBtn');
+      btn.textContent = '시작';
+      btn.className = 'bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg px-8 py-4 rounded-2xl transition-all shadow-lg';
+    }
+
+    // setInterval이 10ms마다 호출하는 함수
+    function tick() {
+      // 현재 시각 - 시작 시각 = 경과 시간(ms)
+      elapsedMs = Date.now() - startTime;
+
+      // 밀리초를 시/분/초/밀리초로 변환합니다
+      // Math.floor: 소수점 아래를 버리고 정수만 남깁니다
+      const totalSeconds = Math.floor(elapsedMs / 1000);
+      const hours   = Math.floor(totalSeconds / 3600);        // 1시간 = 3600초
+      const minutes = Math.floor((totalSeconds % 3600) / 60); // 나머지에서 분 계산
+      const seconds = totalSeconds % 60;                      // 나머지가 초
+      // elapsedMs % 1000: 초 단위 아래 나머지 ms → 10으로 나눠 두 자리로 표시
+      const millis  = Math.floor((elapsedMs % 1000) / 10);
+
+      updateDisplay(hours, minutes, seconds, millis);
+    }
+
+    // 화면의 시/분/초/밀리초 숫자를 업데이트하는 함수
+    function updateDisplay(h, m, s, ms = 0) {
+      // padStart(2, '0'): 한 자리 숫자 앞에 '0'을 붙여 두 자리로 만듭니다
+      // 예: 5 → "05", 12 → "12"
+      document.getElementById('hours').textContent   = String(h).padStart(2, '0');
+      document.getElementById('minutes').textContent = String(m).padStart(2, '0');
+      document.getElementById('seconds').textContent = String(s).padStart(2, '0');
+      document.getElementById('millis').textContent  = String(ms).padStart(2, '0');
+    }
+  </script>
+
+</body>
+</html>

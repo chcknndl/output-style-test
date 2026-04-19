@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>계산기</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .calculator {
+      background: #16213e;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      width: 300px;
+    }
+
+    .display {
+      background: #0f3460;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      text-align: right;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .display .expression {
+      color: #888;
+      font-size: 0.85rem;
+      min-height: 20px;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .display .result {
+      color: white;
+      font-size: 2rem;
+      font-weight: 300;
+      word-break: break-all;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      padding: 16px 0;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.1s;
+      font-weight: 500;
+    }
+
+    button:active { transform: scale(0.94); opacity: 0.85; }
+
+    .btn-num    { background: #1a1a3e; color: white; }
+    .btn-op     { background: #e94560; color: white; }
+    .btn-eq     { background: #6c63ff; color: white; }
+    .btn-clear  { background: #533483; color: white; }
+    .btn-zero   { grid-column: span 2; }
+
+    button:hover { filter: brightness(1.15); }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="buttons">
+      <button class="btn-clear" onclick="clearAll()">AC</button>
+      <button class="btn-clear" onclick="toggleSign()">+/-</button>
+      <button class="btn-clear" onclick="percent()">%</button>
+      <button class="btn-op"    onclick="inputOp('/')">÷</button>
+
+      <button class="btn-num" onclick="inputNum('7')">7</button>
+      <button class="btn-num" onclick="inputNum('8')">8</button>
+      <button class="btn-num" onclick="inputNum('9')">9</button>
+      <button class="btn-op"  onclick="inputOp('*')">×</button>
+
+      <button class="btn-num" onclick="inputNum('4')">4</button>
+      <button class="btn-num" onclick="inputNum('5')">5</button>
+      <button class="btn-num" onclick="inputNum('6')">6</button>
+      <button class="btn-op"  onclick="inputOp('-')">−</button>
+
+      <button class="btn-num" onclick="inputNum('1')">1</button>
+      <button class="btn-num" onclick="inputNum('2')">2</button>
+      <button class="btn-num" onclick="inputNum('3')">3</button>
+      <button class="btn-op"  onclick="inputOp('+')">+</button>
+
+      <button class="btn-num btn-zero" onclick="inputNum('0')">0</button>
+      <button class="btn-num" onclick="inputDot()">.</button>
+      <button class="btn-eq"  onclick="calculate()">=</button>
+    </div>
+  </div>
+
+  <script>
+    let current = '0';
+    let expression = '';
+    let justEvaluated = false;
+
+    const resultEl    = document.getElementById('result');
+    const expressionEl = document.getElementById('expression');
+
+    function updateDisplay() {
+      resultEl.textContent    = current;
+      expressionEl.textContent = expression;
+    }
+
+    function inputNum(n) {
+      if (justEvaluated) { current = n; expression = ''; justEvaluated = false; }
+      else current = current === '0' ? n : current + n;
+      updateDisplay();
+    }
+
+    function inputDot() {
+      if (justEvaluated) { current = '0.'; justEvaluated = false; }
+      else if (!current.includes('.')) current += '.';
+      updateDisplay();
+    }
+
+    function inputOp(op) {
+      justEvaluated = false;
+      expression = (expression && !isOperator(expression.slice(-1)))
+        ? expression + ' ' + op + ' '
+        : current + ' ' + op + ' ';
+      current = '0';
+      updateDisplay();
+    }
+
+    function isOperator(ch) { return ['+','-','*','/'].includes(ch); }
+
+    function calculate() {
+      if (!expression) return;
+      const full = expression + current;
+      try {
+        const val = Function('"use strict"; return (' + full + ')')();
+        expression = full + ' =';
+        current = String(parseFloat(val.toFixed(10)));
+        justEvaluated = true;
+      } catch {
+        current = 'Error';
+        expression = '';
+      }
+      updateDisplay();
+    }
+
+    function clearAll() {
+      current = '0'; expression = ''; justEvaluated = false;
+      updateDisplay();
+    }
+
+    function toggleSign() {
+      current = String(parseFloat(current) * -1);
+      updateDisplay();
+    }
+
+    function percent() {
+      current = String(parseFloat(current) / 100);
+      updateDisplay();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key >= '0' && e.key <= '9') inputNum(e.key);
+      else if (e.key === '.')  inputDot();
+      else if (e.key === '+')  inputOp('+');
+      else if (e.key === '-')  inputOp('-');
+      else if (e.key === '*')  inputOp('*');
+      else if (e.key === '/')  { e.preventDefault(); inputOp('/'); }
+      else if (e.key === 'Enter' || e.key === '=') calculate();
+      else if (e.key === 'Escape') clearAll();
+      else if (e.key === 'Backspace') {
+        current = current.length > 1 ? current.slice(0, -1) : '0';
+        updateDisplay();
+      }
+    });
+  </script>
+</body>
+</html>

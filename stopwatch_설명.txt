@@ -1,0 +1,53 @@
+스톱워치 앱 코드 핵심 설명
+===========================
+
+[ 핵심 개념 3가지 ]
+
+1. setInterval — 반복 실행
+---------------------------
+// 10밀리초마다 tick() 함수를 반복 호출합니다
+intervalId = setInterval(tick, 10);
+
+// 멈출 때는 저장해둔 intervalId가 필요합니다
+clearInterval(intervalId);
+
+- setInterval(함수, 시간ms): 지정한 시간마다 함수를 반복 실행합니다.
+- 반환값(intervalId)을 꼭 저장해야 나중에 clearInterval()로 멈출 수 있습니다.
+
+
+2. Date.now() — 경과 시간 계산
+--------------------------------
+startTime = Date.now();              // 시작 시각 기록 (ms 단위)
+elapsedMs = Date.now() - startTime;  // 현재 - 시작 = 경과 시간
+
+- Date.now()는 1970년 1월 1일부터 지금까지의 시간을 밀리초(ms)로 반환합니다.
+- setTimeout으로 1초마다 세는 방식보다 훨씬 정확합니다.
+- 일시정지 후 재시작할 때는 기존 경과 시간을 빼서 기준점을 맞춥니다.
+  예: startTime = Date.now() - elapsedMs;
+
+
+3. padStart() — 두 자리 숫자 표시
+-----------------------------------
+String(5).padStart(2, '0')   // → "05"
+String(12).padStart(2, '0')  // → "12"
+
+- 숫자를 문자열로 바꾼 뒤, 앞에 '0'을 채워 항상 두 자리로 만듭니다.
+- padStart(자릿수, 채울문자): 문자열이 지정한 자릿수보다 짧으면 앞에 채워줍니다.
+
+
+[ 동작 흐름 ]
+
+시작 클릭
+  → setInterval로 10ms마다 tick() 실행
+  → Date.now() - startTime 으로 경과 시간 계산
+  → 밀리초를 시/분/초로 변환 (Math.floor 사용)
+  → padStart()로 두 자리 형식 맞추기
+  → 화면(DOM) 업데이트
+
+
+[ 밀리초 → 시/분/초 변환 공식 ]
+
+const totalSeconds = Math.floor(elapsedMs / 1000);
+const hours   = Math.floor(totalSeconds / 3600);         // 1시간 = 3600초
+const minutes = Math.floor((totalSeconds % 3600) / 60);  // 나머지에서 분 계산
+const seconds = totalSeconds % 60;                       // 나머지가 초
